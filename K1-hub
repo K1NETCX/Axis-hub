@@ -1,20 +1,13 @@
---[[
-    UI LIBRARY - SINTAXE RAYFIELD
-    Cole TUDO em um Script local no StarterPlayerScripts
-    Use EXATAMENTE como Rayfield!
-]]
-
 -- ============================================
--- SECTION 1: SERVICES & UTILITIES
+-- UI LIBRARY COMPLETA + EXECUÇÃO AUTOMÁTICA
+-- Cole TUDO em um Script Local (StarterPlayerScripts)
 -- ============================================
 
+-- Services
 local Services = {
     Players = game:GetService("Players"),
     UserInputService = game:GetService("UserInputService"),
     TweenService = game:GetService("TweenService"),
-    RunService = game:GetService("RunService"),
-    HttpService = game:GetService("HttpService"),
-    TextService = game:GetService("TextService"),
     CoreGui = game:GetService("CoreGui")
 }
 
@@ -31,16 +24,12 @@ function Utility:Create(className, properties)
                 instance.Position = UDim2.new(value[1] or 0, value[2] or 0, value[3] or 0, value[4] or 0)
             elseif prop == "Size" and type(value) == "table" then
                 instance.Size = UDim2.new(value[1] or 0, value[2] or 0, value[3] or 0, value[4] or 0)
-            elseif prop == "AnchorPoint" and type(value) == "table" then
-                instance.AnchorPoint = Vector2.new(value[1] or 0, value[2] or 0)
-            elseif prop == "Color" and type(value) == "table" then
-                instance.Color = Color3.fromRGB(value[1], value[2], value[3])
             elseif prop == "BackgroundColor3" and type(value) == "table" then
                 instance.BackgroundColor3 = Color3.fromRGB(value[1], value[2], value[3])
-            elseif prop == "BorderColor3" and type(value) == "table" then
-                instance.BorderColor3 = Color3.fromRGB(value[1], value[2], value[3])
             elseif prop == "TextColor3" and type(value) == "table" then
                 instance.TextColor3 = Color3.fromRGB(value[1], value[2], value[3])
+            elseif prop == "BorderColor3" and type(value) == "table" then
+                instance.BorderColor3 = Color3.fromRGB(value[1], value[2], value[3])
             else
                 instance[prop] = value
             end
@@ -50,11 +39,7 @@ function Utility:Create(className, properties)
 end
 
 function Utility:Tween(instance, properties, duration)
-    local tweenInfo = TweenInfo.new(
-        duration or 0.2,
-        Enum.EasingStyle.Quad,
-        Enum.EasingDirection.Out
-    )
+    local tweenInfo = TweenInfo.new(duration or 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     local tween = Services.TweenService:Create(instance, tweenInfo, properties)
     tween:Play()
     return tween
@@ -91,131 +76,53 @@ function Utility:Dragify(frame, dragObject)
     end)
 end
 
--- ============================================
--- SECTION 2: RAYFIELD-STYLE LIBRARY
--- ============================================
+-- Library Definition
+local Library = {}
+Library.__index = Library
 
-local RayfieldStyle = {}
-RayfieldStyle.__index = RayfieldStyle
-
-function RayfieldStyle.new(config)
-    local self = setmetatable({}, RayfieldStyle)
+function Library.new(config)
+    local self = setmetatable({}, Library)
     
-    -- Configurações padrão
-    self.Config = {
-        Name = config.Name or "Rayfield UI",
-        LoadingTitle = config.LoadingTitle or "Rayfield",
-        LoadingSubtitle = config.LoadingSubtitle or "Interface Suite",
-        ConfigurationSaving = config.ConfigurationSaving or {
-            Enabled = false,
-            FolderName = "Rayfield",
-            FileName = "Config"
-        },
-        KeySystem = config.KeySystem or false,
-        Key = config.Key or "",
-        Discord = config.Discord or {
-            Enabled = false,
-            Invite = ""
-        }
-    }
-    
-    -- Cores do tema
+    self.Config = config or {}
     self.Colors = {
         Background = Color3.fromRGB(25, 25, 30),
         Secondary = Color3.fromRGB(35, 35, 40),
         Tertiary = Color3.fromRGB(45, 45, 50),
         Accent = Color3.fromRGB(100, 150, 255),
-        AccentDark = Color3.fromRGB(80, 120, 220),
         Text = Color3.fromRGB(255, 255, 255),
         SubText = Color3.fromRGB(180, 180, 185),
         Border = Color3.fromRGB(50, 50, 55)
     }
     
-    -- Criar ScreenGui
     self.ScreenGui = Utility:Create("ScreenGui", {
-        Name = "Rayfield",
+        Name = "UILibrary",
         Parent = Services.CoreGui,
-        IgnoreGuiInset = true,
-        ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        IgnoreGuiInset = true
     })
     
-    -- Proteger GUI
-    if syn and syn.protect_gui then
-        syn.protect_gui(self.ScreenGui)
-    elseif gethui then
+    if gethui then
         self.ScreenGui.Parent = gethui()
+    elseif syn and syn.protect_gui then
+        syn.protect_gui(self.ScreenGui)
     end
     
-    -- Loading Screen
-    if config.LoadingTitle then
-        self:CreateLoadingScreen()
-    end
-    
-    self.Windows = {}
-    self.Tabs = {}
     self.Notifications = {}
     
     return self
 end
 
-function RayfieldStyle:CreateLoadingScreen()
-    local LoadingFrame = Utility:Create("Frame", {
-        Parent = self.ScreenGui,
-        BackgroundColor3 = self.Colors.Background,
-        BorderSizePixel = 0,
-        Position = {0, 0, 0, 0},
-        Size = {1, 0, 1, 0}
-    })
-    
-    Utility:Create("UICorner", {
-        Parent = LoadingFrame,
-        CornerRadius = UDim.new(0, 8)
-    })
-    
-    Utility:Create("TextLabel", {
-        Parent = LoadingFrame,
-        BackgroundTransparency = 1,
-        Position = {0, 0, 0.3, 0},
-        Size = {1, 0, 0, 40},
-        Text = self.Config.LoadingTitle,
-        TextColor3 = self.Colors.Text,
-        Font = Enum.Font.GothamBold,
-        TextSize = 24
-    })
-    
-    Utility:Create("TextLabel", {
-        Parent = LoadingFrame,
-        BackgroundTransparency = 1,
-        Position = {0, 0, 0.4, 0},
-        Size = {1, 0, 0, 20},
-        Text = self.Config.LoadingSubtitle,
-        TextColor3 = self.Colors.SubText,
-        Font = Enum.Font.Gotham,
-        TextSize = 14
-    })
-    
-    task.wait(1.5)
-    LoadingFrame:Destroy()
-end
-
--- Função principal CreateWindow (sintaxe Rayfield)
-function RayfieldStyle:CreateWindow(config)
+function Library:CreateWindow(config)
     local Window = {
         Name = config.Name,
-        Theme = config.Theme or "Default",
-        Tabs = {},
-        Sections = {},
-        Elements = {}
+        Tabs = {}
     }
     
-    -- Main Frame
     Window.MainFrame = Utility:Create("Frame", {
-        Name = "Window",
         Parent = self.ScreenGui,
         BackgroundColor3 = self.Colors.Background,
         BorderSizePixel = 0,
-        Position = {0.5, -300, 0.5, -200},
-        Size = {0, 600, 0, 450},
+        Position = {0.5, -250, 0.5, -175},
+        Size = {0, 500, 0, 350},
         ClipsDescendants = true
     })
     
@@ -224,40 +131,19 @@ function RayfieldStyle:CreateWindow(config)
         CornerRadius = UDim.new(0, 8)
     })
     
-    Utility:Create("UIStroke", {
-        Parent = Window.MainFrame,
-        Color = self.Colors.Border,
-        Thickness = 1
-    })
-    
     -- Title Bar
     local TitleBar = Utility:Create("Frame", {
-        Name = "TitleBar",
         Parent = Window.MainFrame,
         BackgroundColor3 = self.Colors.Secondary,
         BorderSizePixel = 0,
-        Size = {1, 0, 0, 40}
+        Size = {1, 0, 0, 35}
     })
     
-    Utility:Create("UICorner", {
-        Parent = TitleBar,
-        CornerRadius = UDim.new(0, 8)
-    })
-    
-    Utility:Create("Frame", {
-        Parent = TitleBar,
-        BackgroundColor3 = self.Colors.Secondary,
-        BorderSizePixel = 0,
-        Position = {0, 0, 1, -10},
-        Size = {1, 0, 0, 10}
-    })
-    
-    -- Title Text
     Utility:Create("TextLabel", {
         Parent = TitleBar,
         BackgroundTransparency = 1,
-        Position = {0, 15, 0, 0},
-        Size = {0.5, 0, 1, 0},
+        Position = {0, 10, 0, 0},
+        Size = {0.7, 0, 1, 0},
         Text = config.Name,
         TextColor3 = self.Colors.Text,
         Font = Enum.Font.GothamBold,
@@ -269,9 +155,9 @@ function RayfieldStyle:CreateWindow(config)
     local CloseButton = Utility:Create("TextButton", {
         Parent = TitleBar,
         BackgroundTransparency = 1,
-        Position = {1, -40, 0, 0},
+        Position = {1, -35, 0, 0},
         Size = {0, 30, 0, 30},
-        Text = "✕",
+        Text = "X",
         TextColor3 = self.Colors.Text,
         Font = Enum.Font.GothamBold,
         TextSize = 18
@@ -281,126 +167,72 @@ function RayfieldStyle:CreateWindow(config)
         Window.MainFrame:Destroy()
     end)
     
-    -- Minimize Button
-    local MinimizeButton = Utility:Create("TextButton", {
-        Parent = TitleBar,
-        BackgroundTransparency = 1,
-        Position = {1, -75, 0, 0},
-        Size = {0, 30, 0, 30},
-        Text = "—",
-        TextColor3 = self.Colors.Text,
-        Font = Enum.Font.GothamBold,
-        TextSize = 18
-    })
-    
-    local minimized = false
-    MinimizeButton.MouseButton1Click:Connect(function()
-        minimized = not minimized
-        if minimized then
-            Window.OriginalSize = Window.MainFrame.Size
-            Utility:Tween(Window.MainFrame, {Size = UDim2.new(0, 600, 0, 40)}, 0.3)
-            MinimizeButton.Text = "□"
-        else
-            Utility:Tween(Window.MainFrame, {Size = Window.OriginalSize}, 0.3)
-            MinimizeButton.Text = "—"
-        end
-    end)
-    
-    -- Make window draggable
     Utility:Dragify(Window.MainFrame, TitleBar)
     
     -- Tab Container
-    Window.TabContainer = Utility:Create("Frame", {
-        Name = "TabContainer",
+    Window.TabButtons = Utility:Create("Frame", {
         Parent = Window.MainFrame,
         BackgroundColor3 = self.Colors.Secondary,
         BorderSizePixel = 0,
-        Position = {0, 0, 0, 40},
-        Size = {0, 150, 1, -40}
-    })
-    
-    -- Tab Buttons Container
-    Window.TabButtons = Utility:Create("ScrollingFrame", {
-        Parent = Window.TabContainer,
-        BackgroundTransparency = 1,
-        BorderSizePixel = 0,
-        Size = {1, 0, 1, 0},
-        CanvasSize = {0, 0, 0, 0},
-        ScrollBarThickness = 2,
-        ScrollBarImageColor3 = self.Colors.Accent
+        Position = {0, 0, 0, 35},
+        Size = {0, 120, 1, -35}
     })
     
     Utility:Create("UIListLayout", {
         Parent = Window.TabButtons,
-        Padding = UDim.new(0, 5),
+        Padding = UDim.new(0, 2),
         SortOrder = Enum.SortOrder.LayoutOrder
     })
     
     -- Content Container
     Window.ContentContainer = Utility:Create("Frame", {
-        Name = "ContentContainer",
         Parent = Window.MainFrame,
         BackgroundTransparency = 1,
-        Position = {0, 150, 0, 40},
-        Size = {1, -150, 1, -40}
+        Position = {0, 120, 0, 35},
+        Size = {1, -120, 1, -35}
     })
     
-    -- Método CreateTab (sintaxe Rayfield)
     function Window:CreateTab(config)
         local Tab = {
             Name = config.Name,
-            Icon = config.Icon or "",
-            Sections = {},
-            Elements = {}
+            Sections = {}
         }
         
-        -- Tab Button
         Tab.Button = Utility:Create("TextButton", {
-            Name = config.Name .. "Tab",
             Parent = Window.TabButtons,
             BackgroundColor3 = self.Colors.Tertiary,
             BorderSizePixel = 0,
-            Size = {1, -10, 0, 35},
-            Text = (config.Icon and (config.Icon .. "  ") or "") .. config.Name,
+            Size = {1, -10, 0, 30},
+            Text = config.Name,
             TextColor3 = self.Colors.Text,
             Font = Enum.Font.Gotham,
-            TextSize = 14,
-            TextXAlignment = Enum.TextXAlignment.Left
+            TextSize = 14
         })
         
-        Utility:Create("UICorner", {
-            Parent = Tab.Button,
-            CornerRadius = UDim.new(0, 4)
-        })
-        
-        -- Tab Content
         Tab.Content = Utility:Create("ScrollingFrame", {
-            Name = config.Name .. "Content",
             Parent = Window.ContentContainer,
             BackgroundTransparency = 1,
             BorderSizePixel = 0,
             Size = {1, 0, 1, 0},
             CanvasSize = {0, 0, 0, 0},
             ScrollBarThickness = 3,
-            ScrollBarImageColor3 = self.Colors.Accent,
             Visible = false
         })
         
         Utility:Create("UIListLayout", {
             Parent = Tab.Content,
-            Padding = UDim.new(0, 10),
+            Padding = UDim.new(0, 5),
             SortOrder = Enum.SortOrder.LayoutOrder
         })
         
         Utility:Create("UIPadding", {
             Parent = Tab.Content,
-            PaddingLeft = UDim.new(0, 10),
-            PaddingRight = UDim.new(0, 10),
-            PaddingTop = UDim.new(0, 10),
-            PaddingBottom = UDim.new(0, 10)
+            PaddingLeft = UDim.new(0, 5),
+            PaddingRight = UDim.new(0, 5),
+            PaddingTop = UDim.new(0, 5),
+            PaddingBottom = UDim.new(0, 5)
         })
         
-        -- Tab button click
         Tab.Button.MouseButton1Click:Connect(function()
             if Window.ActiveTab then
                 Window.ActiveTab.Content.Visible = false
@@ -411,11 +243,9 @@ function RayfieldStyle:CreateWindow(config)
             Window.ActiveTab = Tab
         end)
         
-        -- Método CreateSection (sintaxe Rayfield)
         function Tab:CreateSection(config)
             local Section = {
-                Name = config.Name,
-                Elements = {}
+                Name = config.Name
             }
             
             Section.Frame = Utility:Create("Frame", {
@@ -431,38 +261,19 @@ function RayfieldStyle:CreateWindow(config)
                 CornerRadius = UDim.new(0, 6)
             })
             
-            Utility:Create("UIStroke", {
-                Parent = Section.Frame,
-                Color = self.Colors.Border,
-                Thickness = 1
-            })
-            
-            -- Section Header
+            -- Header
             local Header = Utility:Create("Frame", {
                 Parent = Section.Frame,
                 BackgroundColor3 = self.Colors.Tertiary,
                 BorderSizePixel = 0,
-                Size = {1, 0, 0, 35}
-            })
-            
-            Utility:Create("UICorner", {
-                Parent = Header,
-                CornerRadius = UDim.new(0, 6)
-            })
-            
-            Utility:Create("Frame", {
-                Parent = Header,
-                BackgroundColor3 = self.Colors.Tertiary,
-                BorderSizePixel = 0,
-                Position = {0, 0, 1, -10},
-                Size = {1, 0, 0, 10}
+                Size = {1, 0, 0, 30}
             })
             
             Utility:Create("TextLabel", {
                 Parent = Header,
                 BackgroundTransparency = 1,
-                Position = {0, 10, 0, 0},
-                Size = {1, -20, 1, 0},
+                Position = {0, 5, 0, 0},
+                Size = {1, -10, 1, 0},
                 Text = config.Name,
                 TextColor3 = self.Colors.Text,
                 Font = Enum.Font.GothamBold,
@@ -470,44 +281,37 @@ function RayfieldStyle:CreateWindow(config)
                 TextXAlignment = Enum.TextXAlignment.Left
             })
             
-            -- Elements Container
+            -- Container
             Section.Container = Utility:Create("Frame", {
                 Parent = Section.Frame,
                 BackgroundTransparency = 1,
-                Position = {0, 0, 0, 40},
+                Position = {0, 0, 0, 35},
                 Size = {1, 0, 0, 0},
                 AutomaticSize = Enum.AutomaticSize.Y
             })
             
             Utility:Create("UIListLayout", {
                 Parent = Section.Container,
-                Padding = UDim.new(0, 5),
+                Padding = UDim.new(0, 3),
                 SortOrder = Enum.SortOrder.LayoutOrder
             })
             
             Utility:Create("UIPadding", {
                 Parent = Section.Container,
-                PaddingLeft = UDim.new(0, 10),
-                PaddingRight = UDim.new(0, 10),
-                PaddingTop = UDim.new(0, 5),
-                PaddingBottom = UDim.new(0, 5)
+                PaddingLeft = UDim.new(0, 5),
+                PaddingRight = UDim.new(0, 5),
+                PaddingTop = UDim.new(0, 3),
+                PaddingBottom = UDim.new(0, 3)
             })
             
-            table.insert(Tab.Sections, Section)
-            
-            -- ============================================
-            -- ELEMENTOS (Sintaxe Rayfield)
-            -- ============================================
-            
-            local SectionMethods = {
-                -- CreateButton
-                CreateButton = function(self, config)
+            local SectionAPI = {
+                CreateButton = function(self, btnConfig)
                     local Button = Utility:Create("TextButton", {
                         Parent = Section.Container,
                         BackgroundColor3 = self.Colors.Accent,
                         BorderSizePixel = 0,
-                        Size = {1, 0, 0, 35},
-                        Text = config.Name,
+                        Size = {1, 0, 0, 30},
+                        Text = btnConfig.Name,
                         TextColor3 = self.Colors.Text,
                         Font = Enum.Font.Gotham,
                         TextSize = 14
@@ -519,31 +323,29 @@ function RayfieldStyle:CreateWindow(config)
                     })
                     
                     Button.MouseButton1Click:Connect(function()
-                        if config.Callback then
-                            config.Callback()
+                        if btnConfig.Callback then
+                            btnConfig.Callback()
                         end
                     end)
                     
                     return Button
                 end,
                 
-                -- CreateToggle
-                CreateToggle = function(self, config)
-                    local Toggle = {
-                        Value = config.CurrentValue or false,
-                        Frame = Utility:Create("Frame", {
-                            Parent = Section.Container,
-                            BackgroundTransparency = 1,
-                            Size = {1, 0, 0, 35}
-                        })
-                    }
+                CreateToggle = function(self, toggleConfig)
+                    local Toggle = {Value = toggleConfig.CurrentValue or false}
+                    
+                    Toggle.Frame = Utility:Create("Frame", {
+                        Parent = Section.Container,
+                        BackgroundTransparency = 1,
+                        Size = {1, 0, 0, 30}
+                    })
                     
                     Utility:Create("TextLabel", {
                         Parent = Toggle.Frame,
                         BackgroundTransparency = 1,
                         Position = {0, 0, 0, 0},
-                        Size = {0.7, 0, 1, 0},
-                        Text = config.Name,
+                        Size = {0.6, 0, 1, 0},
+                        Text = toggleConfig.Name,
                         TextColor3 = self.Colors.Text,
                         Font = Enum.Font.Gotham,
                         TextSize = 14,
@@ -554,8 +356,8 @@ function RayfieldStyle:CreateWindow(config)
                         Parent = Toggle.Frame,
                         BackgroundColor3 = Toggle.Value and self.Colors.Accent or self.Colors.Tertiary,
                         BorderSizePixel = 0,
-                        Position = {1, -40, 0.5, -10},
-                        Size = {0, 40, 0, 20}
+                        Position = {1, -35, 0.5, -8},
+                        Size = {0, 35, 0, 16}
                     })
                     
                     Utility:Create("UICorner", {
@@ -567,8 +369,8 @@ function RayfieldStyle:CreateWindow(config)
                         Parent = ToggleButton,
                         BackgroundColor3 = {255, 255, 255},
                         BorderSizePixel = 0,
-                        Position = Toggle.Value and {1, -18, 0.5, -8} or {0, 2, 0.5, -8},
-                        Size = {0, 16, 0, 16}
+                        Position = Toggle.Value and {1, -15, 0.5, -7} or {0, 1, 0.5, -7},
+                        Size = {0, 14, 0, 14}
                     })
                     
                     Utility:Create("UICorner", {
@@ -586,49 +388,40 @@ function RayfieldStyle:CreateWindow(config)
                     ClickButton.MouseButton1Click:Connect(function()
                         Toggle.Value = not Toggle.Value
                         ToggleButton.BackgroundColor3 = Toggle.Value and self.Colors.Accent or self.Colors.Tertiary
-                        
                         Utility:Tween(ToggleCircle, {
-                            Position = Toggle.Value and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+                            Position = Toggle.Value and UDim2.new(1, -15, 0.5, -7) or UDim2.new(0, 1, 0.5, -7)
                         }, 0.2)
                         
-                        if config.Callback then
-                            config.Callback(Toggle.Value)
+                        if toggleConfig.Callback then
+                            toggleConfig.Callback(Toggle.Value)
                         end
                     end)
-                    
-                    function Toggle:Set(value)
-                        Toggle.Value = value
-                        ToggleButton.BackgroundColor3 = value and self.Colors.Accent or self.Colors.Tertiary
-                        Utility:Tween(ToggleCircle, {
-                            Position = value and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
-                        }, 0.2)
-                    end
                     
                     return Toggle
                 end,
                 
-                -- CreateSlider
-                CreateSlider = function(self, config)
+                CreateSlider = function(self, sliderConfig)
                     local Slider = {
-                        Min = config.Range[1] or 0,
-                        Max = config.Range[2] or 100,
-                        Value = config.CurrentValue or 50,
-                        Frame = Utility:Create("Frame", {
-                            Parent = Section.Container,
-                            BackgroundTransparency = 1,
-                            Size = {1, 0, 0, 60}
-                        })
+                        Min = sliderConfig.Range[1] or 0,
+                        Max = sliderConfig.Range[2] or 100,
+                        Value = sliderConfig.CurrentValue or 50
                     }
+                    
+                    Slider.Frame = Utility:Create("Frame", {
+                        Parent = Section.Container,
+                        BackgroundTransparency = 1,
+                        Size = {1, 0, 0, 50}
+                    })
                     
                     local ValueLabel = Utility:Create("TextLabel", {
                         Parent = Slider.Frame,
                         BackgroundTransparency = 1,
                         Position = {0, 0, 0, 0},
                         Size = {1, 0, 0, 20},
-                        Text = config.Name .. ": " .. Slider.Value .. config.Suffix,
+                        Text = sliderConfig.Name .. ": " .. Slider.Value,
                         TextColor3 = self.Colors.Text,
                         Font = Enum.Font.Gotham,
-                        TextSize = 14,
+                        TextSize = 13,
                         TextXAlignment = Enum.TextXAlignment.Left
                     })
                     
@@ -636,8 +429,8 @@ function RayfieldStyle:CreateWindow(config)
                         Parent = Slider.Frame,
                         BackgroundColor3 = self.Colors.Tertiary,
                         BorderSizePixel = 0,
-                        Position = {0, 0, 0, 25},
-                        Size = {1, 0, 0, 10}
+                        Position = {0, 0, 0, 22},
+                        Size = {1, 0, 0, 8}
                     })
                     
                     Utility:Create("UICorner", {
@@ -649,7 +442,7 @@ function RayfieldStyle:CreateWindow(config)
                         Parent = SliderFrame,
                         BackgroundColor3 = self.Colors.Accent,
                         BorderSizePixel = 0,
-                        Size = {Slider.Value / Slider.Max, 0, 1, 0}
+                        Size = {(Slider.Value - Slider.Min) / (Slider.Max - Slider.Min), 0, 1, 0}
                     })
                     
                     Utility:Create("UICorner", {
@@ -664,7 +457,7 @@ function RayfieldStyle:CreateWindow(config)
                         Text = ""
                     })
                     
-                    local function updateSlider(input)
+                    local function updateSlider()
                         local mousePos = Services.UserInputService:GetMouseLocation()
                         local sliderPos = SliderFrame.AbsolutePosition
                         local sliderSize = SliderFrame.AbsoluteSize
@@ -673,16 +466,15 @@ function RayfieldStyle:CreateWindow(config)
                         Slider.Value = math.floor(Slider.Min + (Slider.Max - Slider.Min) * relativeX)
                         
                         Fill.Size = UDim2.new(relativeX, 0, 1, 0)
-                        ValueLabel.Text = config.Name .. ": " .. Slider.Value .. (config.Suffix or "")
+                        ValueLabel.Text = sliderConfig.Name .. ": " .. Slider.Value
                         
-                        if config.Callback then
-                            config.Callback(Slider.Value)
+                        if sliderConfig.Callback then
+                            sliderConfig.Callback(Slider.Value)
                         end
                     end
                     
                     SliderButton.MouseButton1Down:Connect(function()
                         updateSlider()
-                        
                         local connection
                         connection = Services.UserInputService.InputChanged:Connect(function(input)
                             if input.UserInputType == Enum.UserInputType.MouseMovement then
@@ -697,37 +489,31 @@ function RayfieldStyle:CreateWindow(config)
                         end)
                     end)
                     
-                    function Slider:Set(value)
-                        Slider.Value = math.clamp(value, Slider.Min, Slider.Max)
-                        local relativeX = (Slider.Value - Slider.Min) / (Slider.Max - Slider.Min)
-                        Fill.Size = UDim2.new(relativeX, 0, 1, 0)
-                        ValueLabel.Text = config.Name .. ": " .. Slider.Value .. (config.Suffix or "")
-                    end
-                    
                     return Slider
                 end,
                 
-                -- CreateDropdown
-                CreateDropdown = function(self, config)
+                CreateDropdown = function(self, dropdownConfig)
                     local Dropdown = {
-                        Options = config.Options or {},
-                        Value = config.CurrentOption or config.Options[1],
-                        Frame = Utility:Create("Frame", {
-                            Parent = Section.Container,
-                            BackgroundTransparency = 1,
-                            Size = {1, 0, 0, 40}
-                        })
+                        Options = dropdownConfig.Options or {},
+                        Value = dropdownConfig.CurrentOption or dropdownConfig.Options[1],
+                        IsOpen = false
                     }
+                    
+                    Dropdown.Frame = Utility:Create("Frame", {
+                        Parent = Section.Container,
+                        BackgroundTransparency = 1,
+                        Size = {1, 0, 0, 35}
+                    })
                     
                     Utility:Create("TextLabel", {
                         Parent = Dropdown.Frame,
                         BackgroundTransparency = 1,
                         Position = {0, 0, 0, 0},
                         Size = {0.4, 0, 1, 0},
-                        Text = config.Name,
+                        Text = dropdownConfig.Name,
                         TextColor3 = self.Colors.Text,
                         Font = Enum.Font.Gotham,
-                        TextSize = 14,
+                        TextSize = 13,
                         TextXAlignment = Enum.TextXAlignment.Left
                     })
                     
@@ -735,12 +521,12 @@ function RayfieldStyle:CreateWindow(config)
                         Parent = Dropdown.Frame,
                         BackgroundColor3 = self.Colors.Tertiary,
                         BorderSizePixel = 0,
-                        Position = {0.4, 10, 0, 0},
-                        Size = {0.6, -20, 0, 35},
+                        Position = {0.4, 5, 0, 0},
+                        Size = {0.6, -10, 0, 30},
                         Text = Dropdown.Value,
                         TextColor3 = self.Colors.Text,
                         Font = Enum.Font.Gotham,
-                        TextSize = 14
+                        TextSize = 13
                     })
                     
                     Utility:Create("UICorner", {
@@ -752,17 +538,12 @@ function RayfieldStyle:CreateWindow(config)
                         Parent = Dropdown.Frame,
                         BackgroundColor3 = self.Colors.Secondary,
                         BorderSizePixel = 0,
-                        Position = {0.4, 10, 0, 40},
-                        Size = {0.6, -20, 0, 0},
+                        Position = {0.4, 5, 0, 35},
+                        Size = {0.6, -10, 0, 0},
                         CanvasSize = {0, 0, 0, 0},
                         ScrollBarThickness = 2,
                         Visible = false,
                         ZIndex = 10
-                    })
-                    
-                    Utility:Create("UICorner", {
-                        Parent = OptionContainer,
-                        CornerRadius = UDim.new(0, 4)
                     })
                     
                     Utility:Create("UIListLayout", {
@@ -770,7 +551,7 @@ function RayfieldStyle:CreateWindow(config)
                         SortOrder = Enum.SortOrder.LayoutOrder
                     })
                     
-                    local function updateOptions()
+                    local function buildOptions()
                         for _, child in pairs(OptionContainer:GetChildren()) do
                             if child:IsA("TextButton") then
                                 child:Destroy()
@@ -783,339 +564,76 @@ function RayfieldStyle:CreateWindow(config)
                                 Parent = OptionContainer,
                                 BackgroundColor3 = self.Colors.Tertiary,
                                 BorderSizePixel = 0,
-                                Size = {1, 0, 0, 30},
+                                Size = {1, 0, 0, 28},
                                 Text = option,
                                 TextColor3 = self.Colors.Text,
                                 Font = Enum.Font.Gotham,
-                                TextSize = 14,
+                                TextSize = 13,
                                 ZIndex = 10
                             })
                             
                             OptionButton.MouseButton1Click:Connect(function()
                                 Dropdown.Value = option
                                 DropdownButton.Text = option
+                                Dropdown.IsOpen = false
                                 OptionContainer.Visible = false
-                                OptionContainer.Size = UDim2.new(0.6, -20, 0, 0)
                                 
-                                if config.Callback then
-                                    config.Callback(option)
+                                if dropdownConfig.Callback then
+                                    dropdownConfig.Callback(option)
                                 end
                             end)
                             
-                            totalHeight = totalHeight + 30
+                            totalHeight = totalHeight + 28
                         end
                         
                         OptionContainer.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
                     end
                     
-                    updateOptions()
+                    buildOptions()
                     
                     DropdownButton.MouseButton1Click:Connect(function()
-                        OptionContainer.Visible = not OptionContainer.Visible
-                        if OptionContainer.Visible then
-                            OptionContainer.Size = UDim2.new(0.6, -20, 0, math.min(#Dropdown.Options * 30, 150))
+                        Dropdown.IsOpen = not Dropdown.IsOpen
+                        OptionContainer.Visible = Dropdown.IsOpen
+                        if Dropdown.IsOpen then
+                            OptionContainer.Size = UDim2.new(0.6, -10, 0, math.min(#Dropdown.Options * 28, 120))
                         else
-                            OptionContainer.Size = UDim2.new(0.6, -20, 0, 0)
+                            OptionContainer.Size = UDim2.new(0.6, -10, 0, 0)
                         end
                     end)
                     
-                    function Dropdown:Set(option)
-                        if table.find(Dropdown.Options, option) then
-                            Dropdown.Value = option
-                            DropdownButton.Text = option
-                        end
-                    end
-                    
-                    function Dropdown:Refresh(newOptions, keepCurrent)
+                    function Dropdown:Refresh(newOptions)
                         Dropdown.Options = newOptions
-                        if not keepCurrent or not table.find(newOptions, Dropdown.Value) then
-                            Dropdown.Value = newOptions[1]
-                            DropdownButton.Text = newOptions[1]
-                        end
-                        updateOptions()
+                        buildOptions()
                     end
                     
                     return Dropdown
                 end,
                 
-                -- CreateColorPicker
-                CreateColorPicker = function(self, config)
-                    local ColorPicker = {
-                        Value = config.Color or Color3.fromRGB(255, 255, 255),
-                        Frame = Utility:Create("Frame", {
-                            Parent = Section.Container,
-                            BackgroundTransparency = 1,
-                            Size = {1, 0, 0, 40}
-                        })
-                    }
-                    
-                    Utility:Create("TextLabel", {
-                        Parent = ColorPicker.Frame,
-                        BackgroundTransparency = 1,
-                        Position = {0, 0, 0, 0},
-                        Size = {0.4, 0, 1, 0},
-                        Text = config.Name,
-                        TextColor3 = self.Colors.Text,
-                        Font = Enum.Font.Gotham,
-                        TextSize = 14,
-                        TextXAlignment = Enum.TextXAlignment.Left
-                    })
-                    
-                    local ColorButton = Utility:Create("TextButton", {
-                        Parent = ColorPicker.Frame,
-                        BackgroundColor3 = ColorPicker.Value,
-                        BorderSizePixel = 0,
-                        Position = {0.4, 10, 0.5, -15},
-                        Size = {0.6, -20, 0, 30},
-                        Text = "",
-                        TextColor3 = self.Colors.Text,
-                        Font = Enum.Font.Gotham,
-                        TextSize = 14
-                    })
-                    
-                    Utility:Create("UICorner", {
-                        Parent = ColorButton,
-                        CornerRadius = UDim.new(0, 4)
-                    })
-                    
-                    ColorButton.MouseButton1Click:Connect(function()
-                        -- Implementação básica de Color Picker
-                        local r = tonumber(tostring(ColorPicker.Value.R * 255))
-                        local g = tonumber(tostring(ColorPicker.Value.G * 255))
-                        local b = tonumber(tostring(ColorPicker.Value.B * 255))
-                        
-                        local newR = math.clamp(r + 50, 0, 255)
-                        local newG = math.clamp(g + 50, 0, 255)
-                        local newB = math.clamp(b + 50, 0, 255)
-                        
-                        if newR > 200 then newR = 0 end
-                        if newG > 200 then newG = 0 end
-                        if newB > 200 then newB = 0 end
-                        
-                        ColorPicker.Value = Color3.fromRGB(newR, newG, newB)
-                        ColorButton.BackgroundColor3 = ColorPicker.Value
-                        
-                        if config.Callback then
-                            config.Callback(ColorPicker.Value)
-                        end
-                    end)
-                    
-                    function ColorPicker:Set(color)
-                        ColorPicker.Value = color
-                        ColorButton.BackgroundColor3 = color
-                    end
-                    
-                    return ColorPicker
-                end,
-                
-                -- CreateInput
-                CreateInput = function(self, config)
-                    local Input = {
-                        Value = "",
-                        Frame = Utility:Create("Frame", {
-                            Parent = Section.Container,
-                            BackgroundTransparency = 1,
-                            Size = {1, 0, 0, 40}
-                        })
-                    }
-                    
-                    Utility:Create("TextLabel", {
-                        Parent = Input.Frame,
-                        BackgroundTransparency = 1,
-                        Position = {0, 0, 0, 0},
-                        Size = {0.4, 0, 1, 0},
-                        Text = config.Name,
-                        TextColor3 = self.Colors.Text,
-                        Font = Enum.Font.Gotham,
-                        TextSize = 14,
-                        TextXAlignment = Enum.TextXAlignment.Left
-                    })
-                    
-                    local InputBox = Utility:Create("TextBox", {
-                        Parent = Input.Frame,
-                        BackgroundColor3 = self.Colors.Tertiary,
-                        BorderSizePixel = 0,
-                        Position = {0.4, 10, 0.5, -15},
-                        Size = {0.6, -20, 0, 30},
-                        PlaceholderText = config.PlaceholderText or "",
-                        PlaceholderColor3 = self.Colors.SubText,
-                        Text = "",
-                        TextColor3 = self.Colors.Text,
-                        Font = Enum.Font.Gotham,
-                        TextSize = 14,
-                        ClearTextOnFocus = false
-                    })
-                    
-                    Utility:Create("UICorner", {
-                        Parent = InputBox,
-                        CornerRadius = UDim.new(0, 4)
-                    })
-                    
-                    InputBox.FocusLost:Connect(function(enterPressed)
-                        Input.Value = InputBox.Text
-                        if config.Callback then
-                            config.Callback(Input.Value)
-                        end
-                    end)
-                    
-                    function Input:Set(value)
-                        Input.Value = value
-                        InputBox.Text = value
-                    end
-                    
-                    return Input
-                end,
-                
-                -- CreateKeybind
-                CreateKeybind = function(self, config)
-                    local Keybind = {
-                        Value = config.CurrentKeybind or Enum.KeyCode.Unknown,
-                        Binding = false,
-                        Frame = Utility:Create("Frame", {
-                            Parent = Section.Container,
-                            BackgroundTransparency = 1,
-                            Size = {1, 0, 0, 40}
-                        })
-                    }
-                    
-                    Utility:Create("TextLabel", {
-                        Parent = Keybind.Frame,
-                        BackgroundTransparency = 1,
-                        Position = {0, 0, 0, 0},
-                        Size = {0.4, 0, 1, 0},
-                        Text = config.Name,
-                        TextColor3 = self.Colors.Text,
-                        Font = Enum.Font.Gotham,
-                        TextSize = 14,
-                        TextXAlignment = Enum.TextXAlignment.Left
-                    })
-                    
-                    local KeybindButton = Utility:Create("TextButton", {
-                        Parent = Keybind.Frame,
-                        BackgroundColor3 = self.Colors.Tertiary,
-                        BorderSizePixel = 0,
-                        Position = {0.4, 10, 0.5, -15},
-                        Size = {0.6, -20, 0, 30},
-                        Text = Keybind.Value.Name,
-                        TextColor3 = self.Colors.Text,
-                        Font = Enum.Font.Gotham,
-                        TextSize = 14
-                    })
-                    
-                    Utility:Create("UICorner", {
-                        Parent = KeybindButton,
-                        CornerRadius = UDim.new(0, 4)
-                    })
-                    
-                    KeybindButton.MouseButton1Click:Connect(function()
-                        Keybind.Binding = true
-                        KeybindButton.Text = "..."
-                        
-                        local connection
-                        connection = Services.UserInputService.InputBegan:Connect(function(input, gameProcessed)
-                            if Keybind.Binding and not gameProcessed then
-                                if input.UserInputType == Enum.UserInputType.Keyboard then
-                                    Keybind.Value = input.KeyCode
-                                elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-                                    Keybind.Value = Enum.UserInputType.MouseButton1
-                                elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
-                                    Keybind.Value = Enum.UserInputType.MouseButton2
-                                end
-                                
-                                KeybindButton.Text = tostring(Keybind.Value):gsub("Enum.KeyCode.", ""):gsub("Enum.UserInputType.", "")
-                                Keybind.Binding = false
-                                connection:Disconnect()
-                                
-                                if config.Callback then
-                                    config.Callback(Keybind.Value)
-                                end
-                            end
-                        end)
-                    end)
-                    
-                    Services.UserInputService.InputBegan:Connect(function(input, gameProcessed)
-                        if not gameProcessed and input.KeyCode == Keybind.Value then
-                            if config.Callback then
-                                config.Callback(Keybind.Value)
-                            end
-                        end
-                    end)
-                    
-                    return Keybind
-                end,
-                
-                -- CreateLabel
-                CreateLabel = function(self, config)
+                CreateLabel = function(self, labelConfig)
                     local Label = Utility:Create("Frame", {
                         Parent = Section.Container,
                         BackgroundTransparency = 1,
-                        Size = {1, 0, 0, 25}
+                        Size = {1, 0, 0, 20}
                     })
                     
                     Utility:Create("TextLabel", {
                         Parent = Label,
                         BackgroundTransparency = 1,
                         Size = {1, 0, 1, 0},
-                        Text = config.Text,
+                        Text = labelConfig.Text,
                         TextColor3 = self.Colors.Text,
                         Font = Enum.Font.Gotham,
-                        TextSize = 14,
+                        TextSize = 13,
                         TextXAlignment = Enum.TextXAlignment.Left
                     })
                     
                     return Label
-                end,
-                
-                -- CreateParagraph
-                CreateParagraph = function(self, config)
-                    local Paragraph = Utility:Create("Frame", {
-                        Parent = Section.Container,
-                        BackgroundTransparency = 1,
-                        Size = {1, 0, 0, 0},
-                        AutomaticSize = Enum.AutomaticSize.Y
-                    })
-                    
-                    Utility:Create("TextLabel", {
-                        Parent = Paragraph,
-                        BackgroundTransparency = 1,
-                        Position = {0, 0, 0, 0},
-                        Size = {1, 0, 0, 20},
-                        Text = config.Title or "",
-                        TextColor3 = self.Colors.Text,
-                        Font = Enum.Font.GothamBold,
-                        TextSize = 14,
-                        TextXAlignment = Enum.TextXAlignment.Left
-                    })
-                    
-                    Utility:Create("TextLabel", {
-                        Parent = Paragraph,
-                        BackgroundTransparency = 1,
-                        Position = {0, 0, 0, 25},
-                        Size = {1, 0, 0, 0},
-                        Text = config.Content or "",
-                        TextColor3 = self.Colors.SubText,
-                        Font = Enum.Font.Gotham,
-                        TextSize = 12,
-                        TextXAlignment = Enum.TextXAlignment.Left,
-                        TextWrapped = true,
-                        AutomaticSize = Enum.AutomaticSize.Y
-                    })
-                    
-                    return Paragraph
                 end
             }
             
-            -- Bind self to methods
-            for name, method in pairs(SectionMethods) do
-                SectionMethods[name] = function(...)
-                    return method(self, ...)
-                end
-            end
-            
-            return SectionMethods
+            return SectionAPI
         end
         
-        -- Set first tab as active
         if #Window.Tabs == 0 then
             Tab.Content.Visible = true
             Tab.Button.BackgroundColor3 = self.Colors.Accent
@@ -1123,61 +641,39 @@ function RayfieldStyle:CreateWindow(config)
         end
         
         table.insert(Window.Tabs, Tab)
-        
-        -- Update canvas size
-        local totalHeight = (#Window.Tabs * 40) + (#Window.Tabs - 1) * 5
-        Window.TabButtons.CanvasSize = UDim2.new(0, 0, 0, totalHeight)
-        
         return Tab
     end
     
-    table.insert(self.Windows, Window)
     return Window
 end
 
--- Notifications (sintaxe Rayfield)
-function RayfieldStyle:Notify(config)
+function Library:Notify(config)
     local Title = config.Title or "Notification"
     local Content = config.Content or ""
     local Duration = config.Duration or 3
-    local Type = config.Type or "Info"
     
-    local yOffset = 10 + (#self.Notifications * 70)
+    local yOffset = 10 + (#self.Notifications * 65)
     
-    local NotificationFrame = Utility:Create("Frame", {
+    local NotifFrame = Utility:Create("Frame", {
         Parent = self.ScreenGui,
         BackgroundColor3 = self.Colors.Secondary,
         BorderSizePixel = 0,
-        Position = {1, -310, 0, yOffset},
-        Size = {0, 300, 0, 60},
+        Position = {1, -260, 0, yOffset},
+        Size = {0, 250, 0, 55},
         AnchorPoint = {1, 0},
         ZIndex = 100
     })
     
     Utility:Create("UICorner", {
-        Parent = NotificationFrame,
+        Parent = NotifFrame,
         CornerRadius = UDim.new(0, 6)
     })
     
-    local typeColors = {
-        Info = Color3.fromRGB(80, 160, 255),
-        Success = Color3.fromRGB(80, 200, 120),
-        Warning = Color3.fromRGB(255, 200, 50),
-        Error = Color3.fromRGB(255, 80, 80)
-    }
-    
-    Utility:Create("Frame", {
-        Parent = NotificationFrame,
-        BackgroundColor3 = typeColors[Type] or typeColors.Info,
-        BorderSizePixel = 0,
-        Size = {0, 4, 1, 0}
-    })
-    
     Utility:Create("TextLabel", {
-        Parent = NotificationFrame,
+        Parent = NotifFrame,
         BackgroundTransparency = 1,
-        Position = {0, 10, 0, 5},
-        Size = {1, -20, 0, 20},
+        Position = {0, 8, 0, 3},
+        Size = {1, -16, 0, 18},
         Text = Title,
         TextColor3 = self.Colors.Text,
         Font = Enum.Font.GothamBold,
@@ -1186,10 +682,10 @@ function RayfieldStyle:Notify(config)
     })
     
     Utility:Create("TextLabel", {
-        Parent = NotificationFrame,
+        Parent = NotifFrame,
         BackgroundTransparency = 1,
-        Position = {0, 10, 0, 30},
-        Size = {1, -20, 0, 20},
+        Position = {0, 8, 0, 24},
+        Size = {1, -16, 0, 24},
         Text = Content,
         TextColor3 = self.Colors.SubText,
         Font = Enum.Font.Gotham,
@@ -1198,21 +694,19 @@ function RayfieldStyle:Notify(config)
         TextWrapped = true
     })
     
-    local Notification = {Frame = NotificationFrame}
+    local Notification = {Frame = NotifFrame}
     table.insert(self.Notifications, Notification)
     
-    -- Auto remove
     task.delay(Duration, function()
-        if NotificationFrame then
-            Utility:Tween(NotificationFrame, {
-                Position = UDim2.new(1, 10, 0, NotificationFrame.Position.Y.Offset),
+        if NotifFrame then
+            Utility:Tween(NotifFrame, {
+                Position = UDim2.new(1, 10, 0, NotifFrame.Position.Y.Offset),
                 BackgroundTransparency = 1
             }, 0.3)
             
             task.wait(0.3)
-            NotificationFrame:Destroy()
+            NotifFrame:Destroy()
             
-            -- Remove from table
             for i, notif in ipairs(self.Notifications) do
                 if notif == Notification then
                     table.remove(self.Notifications, i)
@@ -1220,44 +714,102 @@ function RayfieldStyle:Notify(config)
                 end
             end
             
-            -- Reposition
             for i, notif in ipairs(self.Notifications) do
-                local newY = 10 + ((i - 1) * 70)
                 Utility:Tween(notif.Frame, {
-                    Position = UDim2.new(1, -310, 0, newY)
+                    Position = UDim2.new(1, -260, 0, 10 + ((i - 1) * 65))
                 }, 0.3)
             end
         end
     end)
 end
 
--- Destroy Interface
-function RayfieldStyle:Destroy()
-    if self.ScreenGui then
-        self.ScreenGui:Destroy()
-    end
-end
-
 -- ============================================
--- SECTION 3: EXPORT LIBRARY
+-- EXECUÇÃO AUTOMÁTICA - CRIA A INTERFACE
 -- ============================================
 
-return {
-    CreateWindow = function(config)
-        local lib = RayfieldStyle.new(config)
-        
-        return {
-            CreateWindow = function(windowConfig)
-                return lib:CreateWindow(windowConfig)
-            end,
-            
-            Notify = function(notifyConfig)
-                lib:Notify(notifyConfig)
-            end,
-            
-            Destroy = function()
-                lib:Destroy()
-            end
-        }
+local UI = Library.new({Name = "My Hub"})
+
+local Window = UI:CreateWindow({
+    Name = "Meu Script Hub"
+})
+
+local MainTab = Window:CreateTab({
+    Name = "Principal"
+})
+
+local SettingsTab = Window:CreateTab({
+    Name = "Configurações"
+})
+
+local MainSection = MainTab:CreateSection({
+    Name = "Features Principais"
+})
+
+local SettingsSection = SettingsTab:CreateSection({
+    Name = "Opções"
+})
+
+-- Adicionando elementos de exemplo
+MainSection:CreateButton({
+    Name = "Clique Aqui!",
+    Callback = function()
+        UI:Notify({
+            Title = "Sucesso!",
+            Content = "Botão foi clicado!",
+            Duration = 3
+        })
+        print("Botão clicado!")
     end
-}
+})
+
+MainSection:CreateToggle({
+    Name = "Ativar Função",
+    CurrentValue = false,
+    Callback = function(value)
+        print("Toggle:", value)
+        UI:Notify({
+            Title = "Toggle",
+            Content = "Função " .. (value and "ativada" or "desativada"),
+            Duration = 2
+        })
+    end
+})
+
+MainSection:CreateSlider({
+    Name = "Velocidade",
+    Range = {0, 100},
+    CurrentValue = 50,
+    Callback = function(value)
+        print("Slider:", value)
+    end
+})
+
+MainSection:CreateDropdown({
+    Name = "Modo",
+    Options = {"Fácil", "Médio", "Difícil"},
+    CurrentOption = "Médio",
+    Callback = function(option)
+        print("Dropdown:", option)
+    end
+})
+
+SettingsSection:CreateLabel({
+    Text = "Configurações gerais"
+})
+
+SettingsSection:CreateToggle({
+    Name = "Auto Save",
+    CurrentValue = true,
+    Callback = function(value)
+        print("Auto Save:", value)
+    end
+})
+
+-- Notificação de boas-vindas
+UI:Notify({
+    Title = "Bem-vindo!",
+    Content = "Interface carregada com sucesso!",
+    Duration = 5
+})
+
+print("✅ UI Library carregada!")
