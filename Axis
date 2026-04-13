@@ -1,8 +1,6 @@
 --[[
-	Axis Interface Suite 
-
-6q0t | Designing + Programming
-Rayfield Sintaxe
+	Axis Interface Suite - Four 
+	Customizado: Fundo Preto | Tabs na Direita | Bordas Quadradas | Tecla P para fechar
 ]]
 
 if debugX then
@@ -112,7 +110,7 @@ local ConfigurationFolder = AxisFolder.."/Configurations"
 local ConfigurationExtension = ".rfld"
 local settingsTable = {
 	General = {
-		axisOpen = {Type = 'bind', Value = 'K', Name = 'Axis Keybind'},
+		axisOpen = {Type = 'bind', Value = 'P', Name = 'Axis Keybind'},
 	},
 	System = {
 		usageAnalytics = {Type = 'toggle', Value = true, Name = 'Anonymised Analytics'},
@@ -182,7 +180,7 @@ local function loadSettings()
 
 		if useStudio then
 			file = [[
-	{"General":{"axisOpen":{"Value":"K","Type":"bind","Name":"Axis Keybind","Element":{"HoldToInteract":false,"Ext":true,"Name":"Axis Keybind","Set":null,"CallOnChange":true,"Callback":null,"CurrentKeybind":"K"}}},"System":{"usageAnalytics":{"Value":false,"Type":"toggle","Name":"Anonymised Analytics","Element":{"Ext":true,"Name":"Anonymised Analytics","Set":null,"CurrentValue":false,"Callback":null}}}}
+	{"General":{"axisOpen":{"Value":"P","Type":"bind","Name":"Axis Keybind","Element":{"HoldToInteract":false,"Ext":true,"Name":"Axis Keybind","Set":null,"CallOnChange":true,"Callback":null,"CurrentKeybind":"P"}}},"System":{"usageAnalytics":{"Value":false,"Type":"toggle","Name":"Anonymised Analytics","Element":{"Ext":true,"Name":"Anonymised Analytics","Set":null,"CurrentValue":false,"Callback":null}}}}
 ]]
 		end
 
@@ -519,16 +517,35 @@ local keybindConnections = {}
 
 local SelectedTheme = AxisLibrary.Theme.BlackSquare
 
--- REMOVER BORDAS ARREDONDADAS (DEIXAR QUADRADO)
+-- REMOVER BORDAS ARREDONDADAS E DEIXAR QUADRADO COM BORDA PERSONALIZÁVEL
 Axis.Main.BackgroundTransparency = 0
 Axis.Main.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 Axis.Main.ClipsDescendants = true
+
+-- Criar um UIStroke para a borda da ScreenGui (borda personalizável)
+local mainBorder = Instance.new("UIStroke")
+mainBorder.Parent = Axis.Main
+mainBorder.Color = Color3.fromRGB(255, 255, 255) -- Cor padrão branca
+mainBorder.Thickness = 2
+mainBorder.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
 -- Forçar bordas retas/quadradas
 for _, uiCorner in ipairs(Axis:GetDescendants()) do
 	if uiCorner:IsA("UICorner") then
 		uiCorner:Destroy()
 	end
+end
+
+-- Função para mudar a cor da borda da hub
+function AxisLibrary:SetBorderColor(color)
+	if mainBorder then
+		mainBorder.Color = color
+	end
+end
+
+-- Função para pegar a cor atual da borda
+function AxisLibrary:GetBorderColor()
+	return mainBorder and mainBorder.Color or Color3.fromRGB(255, 255, 255)
 end
 
 local function ChangeTheme(Theme)
@@ -3465,6 +3482,7 @@ Topbar.Hide.MouseButton1Click:Connect(function()
 	setVisibility(Hidden, not useMobileSizing)
 end)
 
+-- Tecla P para fechar a hub (a tecla padrão agora é P)
 hideHotkeyConnection = UserInputService.InputBegan:Connect(function(input, processed)
 	if (input.KeyCode == Enum.KeyCode[getSetting("General", "axisOpen")]) and not processed then
 		if Debounce then return end
@@ -3567,190 +3585,5 @@ task.delay(4, function()
 		Main.Notice.Visible = false
 	end
 end)
-
--- ============================================
--- AQUI COMEÇA O SEU HUB - FourHub | SP
--- ============================================
-
-local Window = AxisLibrary:CreateWindow({
-    Name = "FourHub | SP",
-    Theme = AxisLibrary.Theme.BlackSquare,
-    LoadingTitle = "FourHub",
-    LoadingSubtitle = "Premium Script",
-    ConfigurationSaving = {
-        Enabled = true,
-        FileName = "FourHub_SP",
-        FolderName = "FourHub"
-    },
-    Discord = {
-        Enabled = false,
-        Invite = "",
-        RememberJoins = true
-    },
-    KeySystem = false,
-})
-
--- ABA 1 - Main
-local MainTab = Window:CreateTab("Main", 0)
-
-MainTab:CreateSection("Information")
-
-MainTab:CreateLabel("Priority", nil, nil, true)
-MainTab:CreateLabel("  • Main", nil, nil, true)
-MainTab:CreateLabel("  • Automation", nil, nil, true)
-MainTab:CreateLabel("  • Artifact", nil, nil, true)
-MainTab:CreateLabel("  • Dungeon", nil, nil, true)
-
-MainTab:CreateDivider()
-
-MainTab:CreateLabel("Player", nil, nil, true)
-MainTab:CreateLabel("Teleport", nil, nil, true)
-MainTab:CreateLabel("Webhook", nil, nil, true)
-MainTab:CreateLabel("Misc", nil, nil, true)
-MainTab:CreateLabel("Config", nil, nil, true)
-
--- ABA 2 - Autofarm
-local AutofarmTab = Window:CreateTab("Autofarm", 0)
-
-AutofarmTab:CreateSection("Search")
-AutofarmTab:CreateLabel("Select Mob(s)", nil, nil, true)
-AutofarmTab:CreateButton({Name = "Refresh", Callback = function() end})
-AutofarmTab:CreateButton({Name = "Autofarm Selected Mob", Callback = function() end})
-AutofarmTab:CreateButton({Name = "Autofarm All Mobs", Callback = function() end})
-
-AutofarmTab:CreateDivider()
-AutofarmTab:CreateSection("Select Type")
-AutofarmTab:CreateLabel("  • All Mob", nil, nil, true)
-AutofarmTab:CreateLabel("  • Normal", nil, nil, true)
-AutofarmTab:CreateButton({Name = "Autofarm Level", Callback = function() end})
-
--- ABA 3 - Haki
-local HakiTab = Window:CreateTab("Haki", 0)
-
-HakiTab:CreateSection("Haki")
-HakiTab:CreateLabel("Skill", nil, nil, true)
-HakiTab:CreateLabel("Combo", nil, nil, true)
-
-HakiTab:CreateDivider()
-
-HakiTab:CreateToggle({
-    Name = "Auto Observation Haki",
-    CurrentValue = false,
-    Callback = function(Value) end
-})
-
-HakiTab:CreateToggle({
-    Name = "Auto Armament Haki",
-    CurrentValue = false,
-    Callback = function(Value) end
-})
-
-HakiTab:CreateToggle({
-    Name = "Auto Conqueror Haki",
-    CurrentValue = false,
-    Callback = function(Value) end
-})
-
--- ABA 4 - Title
-local TitleTab = Window:CreateTab("Title", 0)
-
-TitleTab:CreateSection("Title System")
-
-TitleTab:CreateToggle({
-    Name = "Auto Switch Title",
-    CurrentValue = false,
-    Callback = function(Value) end
-})
-
-TitleTab:CreateDropdown({
-    Name = "Select Default Title",
-    Options = {"Pirate", "Marine", "Revolutionary", "Bounty Hunter"},
-    CurrentOption = {"Pirate"},
-    Callback = function(Value) end
-})
-
-TitleTab:CreateDivider()
-
-TitleTab:CreateDropdown({
-    Name = "Title [Mob]",
-    Options = {"Mob Killer", "Beast Hunter", "Demon Slayer"},
-    CurrentOption = {"Mob Killer"},
-    Callback = function(Value) end
-})
-
-TitleTab:CreateDropdown({
-    Name = "Title [Boss]",
-    Options = {"Boss Slayer", "Legendary Hunter", "Mythic Killer"},
-    CurrentOption = {"Boss Slayer"},
-    Callback = function(Value) end
-})
-
-TitleTab:CreateDropdown({
-    Name = "Title [Combo F Move]",
-    Options = {"Combo Master", "F-Key Expert", "Combo Breaker"},
-    CurrentOption = {"Combo Master"},
-    Callback = function(Value) end
-})
-
-TitleTab:CreateDivider()
-
-TitleTab:CreateDropdown({
-    Name = "Title [Boss HP%]",
-    Options = {"50% HP", "30% HP", "20% HP", "10% HP"},
-    CurrentOption = {"20% HP"},
-    Callback = function(Value) end
-})
-
-TitleTab:CreateSlider({
-    Name = "Change Until Boss HP%",
-    Range = {1, 100},
-    Increment = 1,
-    CurrentValue = 15,
-    Suffix = "%",
-    Callback = function(Value) end
-})
-
--- ABA 5 - Config
-local ConfigTab = Window:CreateTab("Config", 0)
-
-ConfigTab:CreateSection("General Settings")
-
-ConfigTab:CreateToggle({
-    Name = "Auto Save Config",
-    CurrentValue = true,
-    Callback = function(Value) end
-})
-
-ConfigTab:CreateButton({
-    Name = "Save Current Config",
-    Callback = function()
-        AxisLibrary:Notify({
-            Title = "Configuration",
-            Content = "Configuration saved successfully!",
-            Duration = 3
-        })
-    end
-})
-
-ConfigTab:CreateButton({
-    Name = "Load Last Config",
-    Callback = function() end
-})
-
-ConfigTab:CreateDivider()
-ConfigTab:CreateSection("UI Settings")
-
-ConfigTab:CreateButton({
-    Name = "Destroy UI",
-    Callback = function()
-        AxisLibrary:Destroy()
-    end
-})
-
-AxisLibrary:Notify({
-    Title = "FourHub | SP",
-    Content = "Interface carregada com sucesso!",
-    Duration = 3
-})
 
 return AxisLibrary
