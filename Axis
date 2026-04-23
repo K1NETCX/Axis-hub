@@ -1,5 +1,12 @@
 --[[
 	Axis Interface Suite
+	by Sirius
+
+	shlex  | Designing + Programming
+	iRay   | Programming
+	Max    | Programming
+	Damian | Programming
+
 	Customizado: Fundo Preto | Tabs na Direita | Bordas Quadradas | Tecla P para fechar
 ]]
 
@@ -140,7 +147,6 @@ local useStudio = RunService:IsStudio() or false
 
 local settingsCreated = false
 local settingsInitialized = false
--- LINK DO PROMPT.LUA ATUALIZADO
 local prompt = useStudio and require(script.Parent.prompt) or loadWithTimeout('https://raw.githubusercontent.com/K1NETCX/Axis-hub/refs/heads/main/Prompt.Lua')
 local requestFunc = (syn and syn.request) or (fluxus and fluxus.request) or (http and http.request) or http_request or request
 
@@ -273,8 +279,40 @@ end
 local AxisLibrary = {
 	Flags = {},
 	Theme = {
+		Default = {
+			TextColor = Color3.fromRGB(240, 240, 240),
+			Background = Color3.fromRGB(25, 25, 25),
+			Topbar = Color3.fromRGB(34, 34, 34),
+			Shadow = Color3.fromRGB(20, 20, 20),
+			NotificationBackground = Color3.fromRGB(20, 20, 20),
+			NotificationActionsBackground = Color3.fromRGB(230, 230, 230),
+			TabBackground = Color3.fromRGB(80, 80, 80),
+			TabStroke = Color3.fromRGB(85, 85, 85),
+			TabBackgroundSelected = Color3.fromRGB(210, 210, 210),
+			TabTextColor = Color3.fromRGB(240, 240, 240),
+			SelectedTabTextColor = Color3.fromRGB(50, 50, 50),
+			ElementBackground = Color3.fromRGB(35, 35, 35),
+			ElementBackgroundHover = Color3.fromRGB(40, 40, 40),
+			SecondaryElementBackground = Color3.fromRGB(25, 25, 25),
+			ElementStroke = Color3.fromRGB(50, 50, 50),
+			SecondaryElementStroke = Color3.fromRGB(40, 40, 40),
+			SliderBackground = Color3.fromRGB(50, 138, 220),
+			SliderProgress = Color3.fromRGB(50, 138, 220),
+			SliderStroke = Color3.fromRGB(58, 163, 255),
+			ToggleBackground = Color3.fromRGB(30, 30, 30),
+			ToggleEnabled = Color3.fromRGB(0, 146, 214),
+			ToggleDisabled = Color3.fromRGB(100, 100, 100),
+			ToggleEnabledStroke = Color3.fromRGB(0, 170, 255),
+			ToggleDisabledStroke = Color3.fromRGB(125, 125, 125),
+			ToggleEnabledOuterStroke = Color3.fromRGB(100, 100, 100),
+			ToggleDisabledOuterStroke = Color3.fromRGB(65, 65, 65),
+			DropdownSelected = Color3.fromRGB(40, 40, 40),
+			DropdownUnselected = Color3.fromRGB(30, 30, 30),
+			InputBackground = Color3.fromRGB(30, 30, 30),
+			InputStroke = Color3.fromRGB(65, 65, 65),
+			PlaceholderColor = Color3.fromRGB(178, 178, 178)
+		},
 		BlackSquare = {
-			-- COR PRETA PURA
 			TextColor = Color3.fromRGB(255, 255, 255),
 			Background = Color3.fromRGB(0, 0, 0),
 			Topbar = Color3.fromRGB(0, 0, 0),
@@ -311,6 +349,7 @@ local AxisLibrary = {
 }
 
 -- Interface Management
+
 local AxisAssetId = customAssetId or 10804731440
 local Axis = useStudio and script.Parent:FindFirstChild('Axis') or game:GetObjects("rbxassetid://"..AxisAssetId)[1]
 local buildAttempts = 0
@@ -407,6 +446,7 @@ do
 
 	if hasCustomAsset and hasFilesystem then
 		local ok, err = pcall(function()
+			ensureFolder(AxisFolder)
 			ensureFolder(AssetPath)
 
 			local function nextMissing()
@@ -474,6 +514,7 @@ do
 	Axis.Notifications.Template.Icon.Image = customAssets[tostring(77891951053543)]
 	Axis.Notifications.Template.Shadow.Image = customAssets[tostring(3523728077)]
 	Axis.Loading.Banner.Image = customAssets[tostring(111263549366178)]
+
 end
 
 local minSize = Vector2.new(1024, 768)
@@ -506,7 +547,6 @@ Axis.DisplayOrder = 100
 LoadingFrame.Version.Text = Release
 
 local Icons = useStudio and require(script.Parent.icons) or loadWithTimeout('https://raw.githubusercontent.com/SiriusSoftwareLtd/Axis/refs/heads/main/icons.lua')
-
 local CFileName = nil
 local CEnabled = false
 local Minimised = false
@@ -518,35 +558,109 @@ local keybindConnections = {}
 
 local SelectedTheme = AxisLibrary.Theme.BlackSquare
 
--- REMOVER BORDAS ARREDONDADAS E DEIXAR QUADRADO COM BORDA PERSONALIZÁVEL
+-- REMOVER BORDAS ARREDONDADAS E DEIXAR QUADRADO
 Axis.Main.BackgroundTransparency = 0
 Axis.Main.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 Axis.Main.ClipsDescendants = true
 
--- Criar um UIStroke para a borda da ScreenGui (borda personalizável)
+-- Criar UIStroke para borda
 local mainBorder = Instance.new("UIStroke")
 mainBorder.Parent = Axis.Main
-mainBorder.Color = Color3.fromRGB(255, 255, 255) -- Cor padrão branca
+mainBorder.Color = Color3.fromRGB(255, 255, 255)
 mainBorder.Thickness = 2
 mainBorder.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
--- Forçar bordas retas/quadradas
+-- Remover todos os UICorner
 for _, uiCorner in ipairs(Axis:GetDescendants()) do
 	if uiCorner:IsA("UICorner") then
 		uiCorner:Destroy()
 	end
 end
 
--- Função para mudar a cor da borda da hub
+-- Funções de borda
 function AxisLibrary:SetBorderColor(color)
 	if mainBorder then
 		mainBorder.Color = color
 	end
 end
 
--- Função para pegar a cor atual da borda
 function AxisLibrary:GetBorderColor()
 	return mainBorder and mainBorder.Color or Color3.fromRGB(255, 255, 255)
+end
+
+-- ============================================
+-- NOVA ANIMAÇÃO DE CARREGAMENTO
+-- ============================================
+local function playLoadingAnimation()
+	local loadingTitle = LoadingFrame.Title
+	local loadingSubtitle = LoadingFrame.Subtitle
+	local loadingVersion = LoadingFrame.Version
+	local loadingBanner = LoadingFrame.Banner
+	
+	-- Configurar estado inicial
+	loadingTitle.TextTransparency = 1
+	loadingSubtitle.TextTransparency = 1
+	loadingVersion.TextTransparency = 1
+	loadingBanner.ImageTransparency = 1
+	loadingBanner.Size = UDim2.new(0, 0, 0, 0)
+	
+	-- Animação do banner (crescendo)
+	TweenService:Create(loadingBanner, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+		Size = UDim2.new(0, 64, 0, 64),
+		ImageTransparency = 0
+	}):Play()
+	
+	task.wait(0.3)
+	
+	-- Animação do título (fade in)
+	TweenService:Create(loadingTitle, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+		TextTransparency = 0
+	}):Play()
+	
+	task.wait(0.2)
+	
+	-- Animação do subtítulo (fade in)
+	TweenService:Create(loadingSubtitle, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+		TextTransparency = 0
+	}):Play()
+	
+	task.wait(0.2)
+	
+	-- Animação da versão (fade in)
+	TweenService:Create(loadingVersion, TweenInfo.new(0.5, Enum.EasingStyle.Exponential), {
+		TextTransparency = 0
+	}):Play()
+	
+	-- Efeito de pulso no banner
+	for i = 1, 3 do
+		task.wait(0.15)
+		TweenService:Create(loadingBanner, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {
+			Size = UDim2.new(0, 70, 0, 70)
+		}):Play()
+		task.wait(0.1)
+		TweenService:Create(loadingBanner, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {
+			Size = UDim2.new(0, 58, 0, 58)
+		}):Play()
+	end
+	
+	task.wait(0.3)
+	
+	-- Fade out do banner
+	TweenService:Create(loadingBanner, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {
+		ImageTransparency = 1,
+		Size = UDim2.new(0, 0, 0, 0)
+	}):Play()
+	
+	-- Fade out dos textos
+	TweenService:Create(loadingTitle, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {
+		TextTransparency = 1
+	}):Play()
+	TweenService:Create(loadingSubtitle, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {
+		TextTransparency = 1
+	}):Play()
+	TweenService:Create(loadingVersion, TweenInfo.new(0.3, Enum.EasingStyle.Exponential), {
+		TextTransparency = 1
+	}):Play()
 end
 
 local function ChangeTheme(Theme)
@@ -861,12 +975,11 @@ function AxisLibrary:Notify(data)
 		newNotification.Icon.BackgroundTransparency = 1
 
 		task.wait()
-
 		newNotification.Visible = true
 
 		if data.Actions then
 			warn('Axis | Not seeing your actions in notifications?')
-			print("Notification Actions are being sunset for now, keep up to date on when they're back in the discord. (sirius.menu/discord)")
+			print("Notification Actions are being sunset for now, keep up to date on when they're back in the discord.")
 		end
 
 		local bounds = {newNotification.Title.TextBounds.Y, newNotification.Description.TextBounds.Y}
@@ -1202,7 +1315,7 @@ end
 
 local function createSettings(window)
 	if not (writefile and isfile and readfile and isfolder and makefolder) and not useStudio then
-		if Topbar['Settings'] then Topbar.Settings.Visible = false end
+		if Topbar:FindFirstChild('Settings') then Topbar.Settings.Visible = false end
 		Topbar['Search'].Position = UDim2.new(1, -75, 0.5, 0)
 		warn('Can\'t create settings as no file-saving functionality is available.')
 		return
@@ -1282,7 +1395,11 @@ function AxisLibrary:CreateWindow(Settings)
 		if getgenv and not getgenv().axisCached then
 			Axis.Enabled = true
 			Axis.Loading.Visible = true
-			task.wait(1.4)
+			
+			-- NOVA ANIMAÇÃO DE CARREGAMENTO
+			playLoadingAnimation()
+			
+			task.wait(1.6)
 			Axis.Loading.Visible = false
 		end
 	end
@@ -1291,7 +1408,7 @@ function AxisLibrary:CreateWindow(Settings)
 
 	if not correctBuild and not Settings.DisableBuildWarnings then
 		task.delay(3, function() 
-			AxisLibrary:Notify({Title = 'Build Mismatch', Content = 'Axis may encounter issues as you are running an incompatible interface version ('.. ((Axis:FindFirstChild('Build') and Axis.Build.Value) or 'No Build') ..').\n\nThis version of Axis is intended for interface build '..InterfaceBuild..'.\n\nTry rejoining and then run the script twice.', Image = 4335487866, Duration = 15})		
+			AxisLibrary:Notify({Title = 'Build Mismatch', Content = 'Axis may encounter issues as you are running an incompatible interface version.', Image = 4335487866, Duration = 15})		
 		end)
 	end
 
@@ -1620,48 +1737,19 @@ function AxisLibrary:CreateWindow(Settings)
 	TweenService:Create(Main, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
 	TweenService:Create(Main.Shadow.Image, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {ImageTransparency = 0.6}):Play()
 	task.wait(0.1)
-	TweenService:Create(LoadingFrame.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
-	task.wait(0.05)
-	TweenService:Create(LoadingFrame.Subtitle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
-	task.wait(0.05)
-	TweenService:Create(LoadingFrame.Version, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
+	
+	-- Pequena transição para o conteúdo
+	TweenService:Create(LoadingFrame.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+	TweenService:Create(LoadingFrame.Subtitle, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+	TweenService:Create(LoadingFrame.Version, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
+	
+	task.wait(0.3)
 
 	Elements.Template.LayoutOrder = 100000
 	Elements.Template.Visible = false
 
 	Elements.UIPageLayout.FillDirection = Enum.FillDirection.Horizontal
 	TabList.Template.Visible = false
-
-	-- MODIFICAÇÃO: TABS NA LATERAL DIREITA
-	-- Inverter a ordem dos filhos do TabList para que a primeira tab fique no final (direita)
-	local function reorderTabsToRight()
-		local children = {}
-		for _, child in ipairs(TabList:GetChildren()) do
-			if child.ClassName == "Frame" and child.Name ~= "Placeholder" and child.Name ~= "Template" then
-				table.insert(children, child)
-			end
-		end
-		-- Ordenar por LayoutOrder (padrão)
-		table.sort(children, function(a, b)
-			return (a.LayoutOrder or 0) < (b.LayoutOrder or 0)
-		end)
-		-- Reposicionar cada tab para ficar alinhada à direita
-		for i, child in ipairs(children) do
-			-- Alinhar à direita
-			child.AnchorPoint = Vector2.new(1, 0.5)
-			child.Position = UDim2.new(1, -10, 0.5, (i - 1) * 35)
-		end
-	end
-
-	-- Aguardar um pouco e depois reposicionar as tabs
-	task.spawn(function()
-		task.wait(1)
-		reorderTabsToRight()
-	end)
-
-	-- Também modificar o layout do TabList para usar anchor point right
-	TabList.AnchorPoint = Vector2.new(1, 0.5)
-	TabList.Position = UDim2.new(1, -10, 0.5, 0)
 
 	-- Tab
 	local FirstTab = false
@@ -1693,9 +1781,6 @@ function AxisLibrary:CreateWindow(Settings)
 		TabButton.Image.ImageTransparency = 1
 		TabButton.UIStroke.Transparency = 1
 		TabButton.Visible = not Ext or false
-		
-		-- Alinhar à direita
-		TabButton.AnchorPoint = Vector2.new(1, 0.5)
 
 		-- Create Elements Page
 		local TabPage = Elements.Template:Clone()
@@ -1748,22 +1833,6 @@ function AxisLibrary:CreateWindow(Settings)
 			TweenService:Create(TabButton.Title, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {TextTransparency = 0}):Play()
 		end
 
-		-- Reposicionar tabs quando uma nova é adicionada
-		task.spawn(function()
-			local children = {}
-			for _, child in ipairs(TabList:GetChildren()) do
-				if child.ClassName == "Frame" and child.Name ~= "Placeholder" and child.Name ~= "Template" then
-					table.insert(children, child)
-				end
-			end
-			table.sort(children, function(a, b)
-				return (a.LayoutOrder or 0) < (b.LayoutOrder or 0)
-			end)
-			for i, child in ipairs(children) do
-				child.Position = UDim2.new(1, -10, 0.5, (i - 1) * 35)
-			end
-		end)
-
 		TabButton.Interact.MouseButton1Click:Connect(function()
 			if Minimised then return end
 			TweenService:Create(TabButton, TweenInfo.new(0.7, Enum.EasingStyle.Exponential), {BackgroundTransparency = 0}):Play()
@@ -1793,7 +1862,7 @@ function AxisLibrary:CreateWindow(Settings)
 
 		local Tab = {}
 
-		-- Button com borda personalizável
+		-- Button
 		function Tab:CreateButton(ButtonSettings)
 			local ButtonValue = {}
 
@@ -1803,13 +1872,12 @@ function AxisLibrary:CreateWindow(Settings)
 			Button.Visible = true
 			Button.Parent = TabPage
 
-			-- Permitir personalização da cor da borda
 			if ButtonSettings.BorderColor then
 				Button.UIStroke.Color = ButtonSettings.BorderColor
 			else
 				Button.UIStroke.Color = SelectedTheme.ElementStroke
 			end
-			
+
 			Button.BackgroundTransparency = 1
 			Button.UIStroke.Transparency = 1
 			Button.Title.TextTransparency = 1
@@ -1820,9 +1888,7 @@ function AxisLibrary:CreateWindow(Settings)
 
 			Button.Interact.MouseButton1Click:Connect(function()
 				local Success, Response = pcall(ButtonSettings.Callback)
-				if axisDestroyed then
-					return
-				end
+				if axisDestroyed then return end
 				if not Success then
 					TweenService:Create(Button, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(85, 0, 0)}):Play()
 					TweenService:Create(Button.ElementIndicator, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {TextTransparency = 1}):Play()
@@ -1859,7 +1925,6 @@ function AxisLibrary:CreateWindow(Settings)
 				TweenService:Create(Button.ElementIndicator, TweenInfo.new(0.6, Enum.EasingStyle.Exponential), {TextTransparency = 0.9}):Play()
 			end)
 
-			-- Função para mudar a cor da borda do botão
 			function ButtonValue:SetBorderColor(color)
 				Button.UIStroke.Color = color
 			end
@@ -1872,7 +1937,7 @@ function AxisLibrary:CreateWindow(Settings)
 			return ButtonValue
 		end
 
-		-- ColorPicker (mantido original)
+		-- ColorPicker
 		function Tab:CreateColorPicker(ColorPickerSettings)
 			ColorPickerSettings.Type = "ColorPicker"
 			local ColorPicker = Elements.Template.ColorPicker:Clone()
@@ -2173,7 +2238,7 @@ function AxisLibrary:CreateWindow(Settings)
 			return DividerValue
 		end
 
-		-- Label com borda personalizável
+		-- Label
 		function Tab:CreateLabel(LabelText : string, Icon: number, Color : Color3, IgnoreTheme : boolean, BorderColor)
 			local LabelValue = {}
 
@@ -2231,7 +2296,6 @@ function AxisLibrary:CreateWindow(Settings)
 				end
 			end
 
-			-- Função para mudar a cor da borda do label
 			function LabelValue:SetBorderColor(color)
 				Label.UIStroke.Color = color
 			end
@@ -2292,7 +2356,7 @@ function AxisLibrary:CreateWindow(Settings)
 			return ParagraphValue
 		end
 
-		-- Input com borda personalizável
+		-- Input
 		function Tab:CreateInput(InputSettings)
 			local Input = Elements.Template.Input:Clone()
 			Input.Name = InputSettings.Name
@@ -2394,7 +2458,7 @@ function AxisLibrary:CreateWindow(Settings)
 			return InputSettings
 		end
 
-		-- Dropdown com borda personalizável
+		-- Dropdown
 		function Tab:CreateDropdown(DropdownSettings)
 			local Dropdown = Elements.Template.Dropdown:Clone()
 			if string.find(DropdownSettings.Name,"closed") then
@@ -2739,7 +2803,7 @@ function AxisLibrary:CreateWindow(Settings)
 			return DropdownSettings
 		end
 
-		-- Keybind com borda personalizável
+		-- Keybind
 		function Tab:CreateKeybind(KeybindSettings)
 			local CheckingForKey = false
 			local Keybind = Elements.Template.Keybind:Clone()
@@ -2884,7 +2948,7 @@ function AxisLibrary:CreateWindow(Settings)
 			return KeybindSettings
 		end
 
-		-- Toggle com borda personalizável
+		-- Toggle
 		function Tab:CreateToggle(ToggleSettings)
 			local ToggleValue = {}
 
@@ -3066,7 +3130,7 @@ function AxisLibrary:CreateWindow(Settings)
 			return ToggleSettings
 		end
 
-		-- Slider com borda personalizável
+		-- Slider
 		function Tab:CreateSlider(SliderSettings)
 			local SLDragging = false
 			local Slider = Elements.Template.Slider:Clone()
@@ -3149,9 +3213,7 @@ function AxisLibrary:CreateWindow(Settings)
 							Current = Slider.Main.AbsolutePosition.X + 5
 						elseif Current > Slider.Main.AbsolutePosition.X + Slider.Main.AbsoluteSize.X then
 							Current = Slider.Main.AbsolutePosition.X + Slider.Main.AbsoluteSize.X
-						end
-
-						if Current <= Location and (Location - Start) < 0 then
+						end						if Current <= Location and (Location - Start) < 0 then
 							Start = Location
 						elseif Current >= Location and (Location - Start) > 0 then
 							Start = Location
@@ -3483,7 +3545,6 @@ Topbar.Hide.MouseButton1Click:Connect(function()
 	setVisibility(Hidden, not useMobileSizing)
 end)
 
--- Tecla P para fechar a hub (a tecla padrão agora é P)
 hideHotkeyConnection = UserInputService.InputBegan:Connect(function(input, processed)
 	if (input.KeyCode == Enum.KeyCode[getSetting("General", "axisOpen")]) and not processed then
 		if Debounce then return end
@@ -3562,7 +3623,7 @@ function AxisLibrary:LoadConfiguration()
 end
 
 if useStudio then
-	-- run w/ studio
+	-- Modo Studio
 end
 
 if CEnabled and Main:FindFirstChild('Notice') then
