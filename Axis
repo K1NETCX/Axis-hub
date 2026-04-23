@@ -1,13 +1,8 @@
 --[[
 	Axis Interface Suite
-	by Sirius
+	by Mordomo Dash
 
-	shlex  | Designing + Programming
-	iRay   | Programming
-	Max    | Programming
-	Damian | Programming
-
-	Customizado: Fundo Preto | Tabs na Direita | Bordas Quadradas | Tecla P para fechar
+	Mordomo Dash  | Designing + Programming
 ]]
 
 if debugX then
